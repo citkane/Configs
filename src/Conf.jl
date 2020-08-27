@@ -1,4 +1,4 @@
-module Config
+module Conf
 
     using JSON
     include("utils.jl")

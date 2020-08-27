@@ -1,4 +1,4 @@
-name = "DeploymentConfig"
+name = "Conf"
 uuid = "d3268586-e29f-49f6-96a4-1d4e5b7023cc"
 authors = ["Michael Jonker <michael@openpoint.ie> and contributors"]
 version = "0.1.0"
