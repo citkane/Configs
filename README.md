@@ -1,25 +1,81 @@
 # Configs.jl
 
-## Opinionated tools for managing code deployment configurations
+## Opinionated tool for managing deployment configurations
 
-Configurations are loaded by cascading over-rides, managed through JSON file definitions placed in a configurable system folder. The syntax for accessing configurations is minimal:
+Configurations are loaded by cascading overrides.  
+These are defined in JSON files placed in a configurable folder location.
+
+Further configurations can be added or overridden from your code.  
+This allows for example, setting configurations after a database call.
+```julia
+Configs.set("database.connection.port", 3900)
+```
+
+
+The syntax for accessing configurations is minimal:
 ```julia
 password = Configs.get("database.credentials.password")
 ```
 
-Further configurations can be added or overidden from your code:
-```julia
-Configs.set("database.connection.port", 3900)
-```
-This allows for example, loading configurations from a database and using them during runtime.
+
+
 
 **Immutability:**  
-After the first call to ```Configs.get```, the configuration becomes immutable. Thus, you can not call ```set``` after calling ```get```.
+After the first call to ```Configs.get```, the configuration is immutable. Thus, you can not call ```set``` after calling ```get```. It will throw an error.
 
-Conversely, you must make all you ```set``` calls before accessing any configuration with ```get```.
+Conversely stated, you must complete all your ```set``` calls before accessing with ```get```.
 
+## Installation
+```bash
+$> cd my/project/rootdir
+$> julia --project=.
+julia> ]
+pkg> add Config
+```
+## Usage
+```bash
+#This is optional. The default config folder is expected to be at <my/project/rootdir>/config.
+#Will throw an error if no valid config folder is found or provided
+$> cd my/project/rootdir
+$> mkdir config
+```
+```julia
+using Config
+
+#OPTIONAL custom init
+Config.init(; config_key="MY_ENV", config_directory="relative_or_absolute/custom/configdirectory") 
+# default config_key = "ENVIRONMENT"
+# default config_directory = "<project rootdirectory>/config"
+
+value = "item result from some database call"
+
+Config.set("path.to.new", value)
+Config.set("path.to.override", value)
+
+newvalue = Config.get("path.to.new")
+overriddenvalue = Config.get("path.to.override")
+
+fromjsonvalue = Config.get("database.connection.port")
+# OR
+database = Config.get("database")
+port = database.connection.port
+
+# After the first call to get, the config is immutable, so:
+
+Config.set("database.connection.port", 8000) # > Throws an error
+```
+Alternatively, a custom init can be defined through ENV:
+```bash
+$> cd my/project/rootdir
+
+$> CONFIG_KEY=MY_ENV CONFIG_DIRECTORY=custom/configdirectory julia --project=. src/project.jl
+```
+```CONFIG_KEY``` defines which ```ENV``` key is used to state the deployment environment [development, staging, production, etc...]. The default is ```ENV["ENVIRONMENT"]```.
 ## JSON file definitions:
-### ```default.json```
+
+These provide cascading overrides in the order shown below: 
+
+### [1] ```config/default.json```
 Define public configs. This is suitable for eg. storing in a public code repository.
 ```json
 {
@@ -38,14 +94,14 @@ Define public configs. This is suitable for eg. storing in a public code reposit
     }
 }
 ```
-### ```<environment>.json```
+### [2] ```config/<environment>.json```
 Typically could be:
 - development.json
 - staging.json
 - production.json
 - testing.json
 
-Define semi private, environment specific overides. This would typically have a .gitignore entry, or be stored in a private repository only.
+Define semi private, environment specific overrides. This would typically have a .gitignore exclusion, or be stored in a private repository only.
 
 
 ```json
@@ -66,20 +122,15 @@ The file is named in lowercase to correspond with any ```ENV["ENVIRONMENT"]``` f
 ```bash
 ENVIRONMENT=PrOdUcTiOn julia --project=. src/myproject.jl
 ```
-would provide the overides defined in ```production.json```
+would merge the configuration defined in ```production.json```
 
-### ```custom-environment-variables.json```
+### [3] ```config/custom-environment-variables.json```
 Define private overides. This maps ENV variables to configuration variables.
 
 ```json
 {
     "database": {
-        "connection": {
-            "url": "DATABASE_URL",
-            "port": "DATABASE_PORT"
-        },
         "credentials": {
-            "username": "DATABASE_USERNAME",
             "password": "DATABASE_PASSWORD"
         }
     }
@@ -87,5 +138,8 @@ Define private overides. This maps ENV variables to configuration variables.
 ```
 Private variables are thus passed in explicitly by, for example, defining the environment variable in BASH.
 ```bash
-DATABASE_PASSWORD=supersecretpasword julia --project=. src/myproject.jl
+DATABASE_PASSWORD=mysupersecretpasword julia --project=. src/myproject.jl
 ```
+
+## Footnote
+This is a methodology cloned from the excellent node.js [config](https://www.npmjs.com/package/config) package.
