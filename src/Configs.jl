@@ -1,5 +1,5 @@
 __precompile__()
-
+@show pwd()
 module Configs
 
     using JSON
@@ -10,14 +10,16 @@ module Configs
 
     config_env = convert(Dict, ENV)
     config_dictionary = nothing
+    config_directory = joinpath(pwd(), "config") |> normpath
+    config_key = "ENVIRONMENT"
     config_order = [
         "default.json",
         "custom-environment-variables.json"
     ]
 
-    function init(; config_key = "ENVIRONMENT", config_directory = joinpath(pwd(), "config"))
+    function init(; config_key = config_key, config_directory = config_directory)
         global config_dictionary = Dict()
-        config_directory = getenv("CONFIG_DIRECTORY", config_directory)
+        global config_directory = getenv("CONFIG_DIRECTORY", config_directory)
         config_key = getenv("CONFIG_KEY", config_key)
         config_files = getfiles(config_directory)
         environment = Base.get(config_env, config_key, false)
