@@ -8,30 +8,30 @@ These are defined in JSON files placed in a configurable folder location.
 Further configurations can be added or overridden from your code.  
 This allows for example, setting configurations from external sources.
 ```julia
-Configs.set!("database.connection.port", 3900)
+setconfig!("database.connection.port", 3900)
 ```
 
 
 The syntax for accessing configurations is minimal:
 ```julia
-password = Configs.get("database.credentials.password")
-credentials = Configs.get("database.credentials")
+password = getconfig("database.credentials.password")
+credentials = getconfig("database.credentials")
 username = credentials.username
 password = credentials.password
 ```
 
 Accessing non-existent configurations will throw an error, so:
 ```julia
-if Configs.has("database.credentials.password")
-    password = Configs.get("database.credentials.password")
+if hasconfig("database.credentials.password")
+    password = getconfig("database.credentials.password")
 end
 ```
 
 
 **Immutability:**  
-After the first call to ```Configs.get``` or ```Configs.has```, the configuration is immutable. Thus, you can not call ```set!``` after calling ```get``` or ```has```. It will throw an error.
+After the first call to ```getconfig``` or ```hasconfig```, the configuration is immutable. Thus, you can not call ```setconfig!``` after calling ```getconfig``` or ```hasconfig```. It will throw an error.
 
-Conversely stated, you must complete all your ```set!``` calls before accessing with ```get``` or ```has```.
+Conversely stated, you must complete all your ```setconfig!``` calls before accessing with ```getconfig``` or ```hasconfig```.
 
 ## Installation
 ```bash
@@ -51,26 +51,26 @@ $> mkdir configs
 using Configs
 
 #OPTIONAL custom init
-Configs.init(; deployment_key="MY_ENV", configs_directory="relative_or_absolute/custom/configdirectory") 
+initconfig(; deployment_key="MY_ENV", configs_directory="relative_or_absolute/custom/configdirectory") 
 # default deployment_key = "DEPLOYMENT"
 # default configs_directory = "<project rootdirectory>/configs"
 
 value = "item result from some external call"
 
-Configs.set!("path.to.new", value)
-Configs.set!("path.to.override", value)
+setconfig!("path.to.new", value)
+setconfig!("path.to.override", value)
 
-newvalue = Configs.get("path.to.new")
-overriddenvalue = Configs.get("path.to.override")
+newvalue = getconfig("path.to.new")
+overriddenvalue = getconfig("path.to.override")
 
-port = Configs.get("database.connection.port")
+port = getconfig("database.connection.port")
 # OR
-database = Configs.get("database")
+database = getconfig("database")
 port = database.connection.port
 
-# After the first call to get, configs are immutable, so:
+# After the first call to getconfig, configs are immutable, so:
 
-Configs.set!("database.connection.port", 8000) # Throws an error if called here
+setconfig!("database.connection.port", 8000) # Throws an error if called here
 ```
 Alternatively, a custom init can be defined through ENV:
 ```bash
@@ -150,7 +150,7 @@ DATABASE_PASSWORD=mysupersecretpasword julia --project=. src/myproject.jl
 ```
 ```julia
 using Configs
-password = Configs.get("database.credentials.password")
+password = getconfig("database.credentials.password")
 # password === "mysupersecretpasword"
 ```
 
