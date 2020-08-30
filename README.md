@@ -2,18 +2,15 @@
 
 ## Opinionated tool for managing deployment configurations
 
-Configurations are loaded by cascading overrides.  
-These are defined in JSON files placed in a configurable folder location.
-
-Further configurations can be added or overridden from your code.  
-This allows for example, setting configurations from external sources.
+Deployment configurations are loaded by cascading overrides.
+Overrides are inputed in order of:
+1. JSON files placed in a configurable folder location
+2. ENV variable mapping
+3. Function calls
+  
+The syntax for accessing configurations:
 ```julia
-setconfig!("database.connection.port", 3900)
-```
-
-
-The syntax for accessing configurations is minimal:
-```julia
+using Configs
 password = getconfig("database.credentials.password")
 username = getconfig("database.credentials.username")
 # OR
@@ -24,11 +21,17 @@ password = credentials.password
 
 Accessing non-existent configurations will throw an error, so:
 ```julia
+using Configs
 if hasconfig("database.credentials.password")
     password = getconfig("database.credentials.password")
 end
 ```
-
+Setting configurations from external sources:
+```julia
+using Configs
+port = myexternalcall(...)
+setconfig!("database.connection.port", port)
+```
 
 **Immutability:**  
 After the first call to ```getconfig``` or ```hasconfig```, the configuration is immutable. Thus, you can not call ```setconfig!``` after calling ```getconfig``` or ```hasconfig```. It will throw an error.
