@@ -15,6 +15,8 @@ setconfig!("database.connection.port", 3900)
 The syntax for accessing configurations is minimal:
 ```julia
 password = getconfig("database.credentials.password")
+username = getconfig("database.credentials.username")
+# OR
 credentials = getconfig("database.credentials")
 username = credentials.username
 password = credentials.password
