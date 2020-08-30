@@ -6,7 +6,7 @@ Configurations are loaded by cascading overrides.
 These are defined in JSON files placed in a configurable folder location.
 
 Further configurations can be added or overridden from your code.  
-This allows for example, setting configurations from asynchronous sources.
+This allows for example, setting configurations from external sources.
 ```julia
 Configs.set!("database.connection.port", 3900)
 ```
@@ -55,7 +55,7 @@ Configs.init(; deployment_key="MY_ENV", configs_directory="relative_or_absolute/
 # default deployment_key = "DEPLOYMENT"
 # default configs_directory = "<project rootdirectory>/configs"
 
-value = "item result from some asynchronous call"
+value = "item result from some external call"
 
 Configs.set!("path.to.new", value)
 Configs.set!("path.to.override", value)
