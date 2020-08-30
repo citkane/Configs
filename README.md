@@ -22,8 +22,8 @@ password = credentials.password
 Accessing non-existent configurations will throw an error, so:
 ```julia
 using Configs
-if hasconfig("database.credentials.password")
-    password = getconfig("database.credentials.password")
+if hasconfig("optional.setting")
+    setting = getconfig("optional.setting")
 end
 ```
 Setting configurations from external sources:
@@ -46,21 +46,34 @@ julia> ]
 pkg> add Configs
 ```
 ## Usage
+OPTIONAL: Create a ```configs``` directory in the project root
 ```bash
-#This is optional. The default configs folder is expected to be at <my/project/rootdir>/configs.
+#The default configs folder is expected to be at <my/project/rootdir>/configs.
 #Will throw an error if no valid configs folder is found or provided
 $> cd my/project/rootdir
 $> mkdir configs
 ```
+OPTIONAL custom init
+```bash
+$> cd my/project/rootdir
+
+$> DEPLOYMENT_KEY=MY_ENV CONFIGS_DIRECTORY=custom/configdirectory julia --project=. src/project.jl
+```
+```DEPLOYMENT_KEY``` defines which ```ENV``` key is used to state the deployment environment [development, staging, production, etc...]. The default is ```ENV["DEPLOYMENT"]```.
+
+OR...
 ```julia
 using Configs
 
-#OPTIONAL custom init
 initconfig(; deployment_key="MY_ENV", configs_directory="relative_or_absolute/custom/configdirectory") 
 # default deployment_key = "DEPLOYMENT"
 # default configs_directory = "<project rootdirectory>/configs"
+```
+Then manipulate and access your configs:
+```julia
+using Configs
 
-value = "item result from some external call"
+value = myexternalcall(...)
 
 setconfig!("path.to.new", value)
 setconfig!("path.to.override", value)
@@ -71,19 +84,18 @@ overriddenvalue = getconfig("path.to.override")
 port = getconfig("database.connection.port")
 # OR
 database = getconfig("database")
-port = database.connection.port
+connection = database.connection
+port = connection.port
+url = connection.url
 
-# After the first call to getconfig, configs are immutable, so:
+if hasconfig("optional.setting")
+    option = getconfig("optional.setting")
+end
 
+# After the first call to getconfig or hasconfig, configs are immutable, so:
 setconfig!("database.connection.port", 8000) # Throws an error if called here
 ```
-Alternatively, a custom init can be defined through ENV:
-```bash
-$> cd my/project/rootdir
 
-$> DEPLOYMENT_KEY=MY_ENV CONFIGS_DIRECTORY=custom/configdirectory julia --project=. src/project.jl
-```
-```DEPLOYMENT_KEY``` defines which ```ENV``` key is used to state the deployment environment [development, staging, production, etc...]. The default is ```ENV["DEPLOYMENT"]```.
 ## JSON file definitions:
 
 These provide cascading overrides in the order shown below: 
