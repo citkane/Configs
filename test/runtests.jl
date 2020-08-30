@@ -1,14 +1,15 @@
 using Configs
 using Test
+defaultpath = joinpath(pwd(), "configs") |> normpath
+defaultkey = "DEPLOYMENT"
+customdir = "customconfigs"
+customkey = "CUSTOM"
 
-@testset "Environment" begin
-    @info "Verify that ENV has been copied to a dictionary"
-    @test Configs.config_env isa Dict
-    @info "Confirm that the default conf directory is pointing to ./conf in <project root>"
-    defaultpath = joinpath(pwd(), "../conf") |> normpath
-    @test defaultpath === Configs.config_directory
-
+@testset "Unit tests" begin
+    include("./unit.jl")
 end
-@testset "Files" begin
-
+@testset "Functional tests" begin
+    include("./functional.jl")
 end
+
+

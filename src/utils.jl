@@ -1,4 +1,23 @@
-function getenv!(tree::Dict, key::String, value)
+struct Configserror <:Exception
+    msg::String
+end
+
+function deleteenvkey!(key::String)
+    try
+        delete!(ENV, key)
+    catch err
+    end
+end
+
+function parseenvkey(key::String, value)
+    try
+        return ENV[key]
+    catch err
+        return value
+    end
+end
+
+function parsecustomenv!(tree::Dict, key::String, value)
     try
         tree[key] = ENV[value]
     catch err
@@ -6,47 +25,46 @@ function getenv!(tree::Dict, key::String, value)
     end
 end
 
-function getenv!(tree::Dict)
+function parsecustomenv!(tree::Dict)
     for (key, value) in tree
-        value isa Dict ? getenv!(tree[key]) : getenv!(tree, key, value)
-    end
-end
-
-function getenv(key::String, value::String)
-    newvalue = Base.get(config_env, key, false)
-    newvalue === false ? value : newvalue
-end
-
-function compressenv!(tree::Dict, parent::Dict, parent_key::String)
-    for (key, value) in tree
-        value isa Dict && compressenv!(tree[key], tree, key)
-    end
-    length(keys(tree)) === 0 && delete!(parent, parent_key)
-end
-
-function compressenv!(tree::Dict)
-    for (key, value) in tree
-        value isa Dict && compressenv!(tree[key], tree, key)
+        value isa Dict ? parsecustomenv!(tree[key]) : parsecustomenv!(tree, key, value)
     end
 end
 
 tosymbol(value) = value
-tosymbol(dict::Dict) = Dict(Symbol(key) => tosymbol(value) for (key, value) in dict)
-function symboldict!(dict::Dict)
-    for (key, value) in dict
-        symkey = Symbol(key)
-        dict[symkey] = pop!(dict, key)
-        dict[symkey] = tosymbol(dict[symkey])
+tosymbol(dict::Dict) = Dict(Symbol(key) => value for (key, value) in dict)
+
+immutable(value) = value
+function immutable(array::Array)
+    shadow = []
+    for value in array
+        push!(shadow, immutable(value))
     end
+    tuple(shadow...)
 end
 
-immutable(value, shadow::Dict) = value
-function immutable(dict::Dict, shadow::Dict = Dict())
+function immutable(dict::Dict)
+    shadow = Dict()
+    dict = tosymbol(dict)
     for (key, value) in dict
-        val = immutable(dict[key], Dict())
-        shadow[key] = val       
+        shadow[key] = immutable(dict[key])      
     end
     (; shadow...)
+end
+
+function override!(baseconf::Dict, newconf::Dict)
+    for (key, value) in newconf
+        if value isa Dict
+            if haskey(baseconf, key) && baseconf[key] isa Dict
+                override!(baseconf[key], newconf[key])
+            else
+                baseconf[key] = Dict();
+                override!(baseconf[key], newconf[key])
+            end
+        else
+            baseconf[key] = value
+        end
+    end
 end
 
 function getfiles(path::String, retry::Bool = false)
@@ -54,9 +72,9 @@ function getfiles(path::String, retry::Bool = false)
         readdir(path)
     catch err
         if retry
-            error("no such config directory: " * path)
+            throw(Configserror("no such config directory: " * path))
         else
-            getfiles(joinpath(pwd(), path), true)
+            getfiles(joinpath(pwd(), path) |> normpath, true)
         end
     end
 end

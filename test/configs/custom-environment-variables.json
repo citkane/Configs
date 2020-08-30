@@ -1,0 +1,8 @@
+{
+    "database": {
+        "credentials": {
+            "password": "DATABASE_PASSWORD"
+        },
+        "empty": {}
+    }
+}
