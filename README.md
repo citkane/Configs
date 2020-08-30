@@ -59,7 +59,9 @@ $> cd my/project/rootdir
 
 $> DEPLOYMENT_KEY=MY_ENV CONFIGS_DIRECTORY=custom/configdirectory julia --project=. src/project.jl
 ```
-```DEPLOYMENT_KEY``` defines which ```ENV``` key is used to state the deployment environment [development, staging, production, etc...]. The default is ```ENV["DEPLOYMENT"]```.
+**```CONFIGS_DIRECTORY```** defines a custom path to the configs directory. This can be input as absolute or relative to the project root. The default is ```<project root>/configs```
+
+**```DEPLOYMENT_KEY```** defines which ```ENV``` key you intend to use to state the deployment environment [development, staging, production, etc...]. The default is ```ENV["DEPLOYMENT"]```.
 
 OR...
 ```julia
