@@ -2,10 +2,11 @@ __precompile__()
 
 module Configs
     include("utils.jl")
-    using JSON   
-    export  get,
-            set,
-            init
+    using JSON
+    export  getconfig,
+            setconfig!,
+            hasconfig,
+            initconfig
 
     configs = nothing
     const configs_defaultorder = [
@@ -17,7 +18,7 @@ module Configs
         global configs = nothing
     end
 
-    function init(; deployment_key = "DEPLOYMENT", configs_directory = joinpath(pwd(), "configs") |> normpath)::NamedTuple
+    function initconfig(; deployment_key = "DEPLOYMENT", configs_directory = joinpath(pwd(), "configs") |> normpath)::NamedTuple
         global configs = Dict()
         configs_order = copy(configs_defaultorder)
         configs_directory = parseenvkey("CONFIGS_DIRECTORY", configs_directory)
@@ -40,9 +41,9 @@ module Configs
         (; configs_directory, deployment_key, configs_order)
     end
 
-    function get(path::String = "")
+    function getconfig(path::String = "")
         global configs
-        configs === nothing && init()
+        configs === nothing && initconfig()
         configs isa Dict && (configs = immutable(configs))
         path === "" && return configs
         subpaths = split(path, ".")
@@ -58,9 +59,9 @@ module Configs
         return ref
     end
 
-    function set!(path::String, value)
+    function setconfig!(path::String, value)
         path === "" && throw(Configserror("a path is required to set a config"))
-        configs === nothing && init()
+        configs === nothing && initconfig()
         configs isa NamedTuple && throw(Configserror("""config is immutable. Please set all values before calling "get" """))
         subpaths = split(path, ".")
         ref = configs
@@ -73,9 +74,9 @@ module Configs
         end
     end
 
-    function has(path::String)::Bool
+    function hasconfig(path::String)::Bool
         path === "" && throw(Configserror("a path is required to query a config"))
-        configs === nothing && init()
+        configs === nothing && initconfig()
         subpaths = split(path, ".")
         ref = configs
         for i in eachindex(subpaths)
