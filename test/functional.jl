@@ -19,10 +19,10 @@
     Configs.resetconfigs!()
 
     @info "Initialise custom env"
-    init = @test_nowarn initconfig(; deployment_key=customkey, configs_directory=customdir)
+    init = @test_nowarn initconfig(deployment_key=customkey, configs_directory=customdir)
     @test init.configs_directory === customdir
     @test init.deployment_key === customkey
-    
+
     @info "Initialise defaults"
     init = @test_nowarn initconfig()
     @test init.configs_directory === defaultpath
