@@ -20,7 +20,7 @@ module Configs
         global configs = nothing
     end
 
-    function initconfig(; deployment_key = "DEPLOYMENT", configs_directory = default_dir)::NamedTuple
+    function initconfig(; deployment_key = "DEPLOYMENT", configs_directory = default_dir,)::NamedTuple
         global configs = Dict()
         configs_order = copy(configs_defaultorder)
         configs_directory = parseenvkey("CONFIGS_DIRECTORY", configs_directory)
