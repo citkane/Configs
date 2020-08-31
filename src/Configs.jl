@@ -13,12 +13,14 @@ module Configs
         "default.json",
         "custom-environment-variables.json"
     ]
-
+    function __init__()
+        global default_dir = joinpath(pwd(), "configs")
+    end
     function resetconfigs!()
         global configs = nothing
     end
 
-    function initconfig(; deployment_key = "DEPLOYMENT", configs_directory = joinpath(pwd(), "configs"))::NamedTuple
+    function initconfig(; deployment_key = "DEPLOYMENT", configs_directory = default_dir)::NamedTuple
         global configs = Dict()
         configs_order = copy(configs_defaultorder)
         configs_directory = parseenvkey("CONFIGS_DIRECTORY", configs_directory)
