@@ -1,14 +1,14 @@
 name = "Configs"
 uuid = "d3268586-e29f-49f6-96a4-1d4e5b7023cc"
 authors = ["Michael Jonker <michael@openpoint.ie> and contributors"]
-version = "0.1.1"
+version = "0.2.0"
 
 [deps]
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 
 [compat]
-julia = "1"
 JSON = "0.21.0"
+julia = "0.7"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

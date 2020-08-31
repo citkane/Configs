@@ -1,3 +1,8 @@
+customdir = "customconfigs"
+customkey = "CUSTOM"
+defaultpath = "configs"
+defaultkey = "DEPLOYMENT"
+
 @testset "Environment" begin
     @info "Set, get and delete ENV keys"
     ENV["CONFIGS_FOO"] = "test"
@@ -19,7 +24,7 @@
     Configs.resetconfigs!()
 
     @info "Initialise custom env"
-    init = @test_nowarn initconfig(; deployment_key = customkey, configs_directory = customdir,)
+    init = @test_nowarn initconfig(; deployment_key = customkey, configs_directory = customdir)
     @test init.configs_directory === customdir
     @test init.deployment_key === customkey
 

@@ -38,7 +38,7 @@ module Configs
                 override!(configs, newtree)               
             end
         end
-        (; configs_directory, deployment_key, configs_order)
+        (; configs_directory = configs_directory, deployment_key = deployment_key, configs_order = configs_order)
     end
 
     function getconfig(path::String = "")
