@@ -27,8 +27,8 @@ ENV["FOOTEST"] = "yep"
 Configs.deleteenvkey!("FOOTEST")
 
 @info "immutable"
-immutable = @test_nowarn Configs.immutable(testobject(["one", Dict("one" => 1)]))
-@test isequal(immutable, (tree = (val = ("one", (one = 1,)),),))
+isimmutable = @test_nowarn Configs.makeimmutable(testobject(["one", Dict("one" => 1)]))
+@test isequal(isimmutable, (tree = (val = ("one", (one = 1,)),),))
 
 @info "override!"
 base = Dict()

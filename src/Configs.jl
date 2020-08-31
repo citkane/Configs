@@ -18,7 +18,7 @@ module Configs
         global configs = nothing
     end
 
-    function initconfig(; deployment_key = "DEPLOYMENT", configs_directory = joinpath(pwd(), "configs") |> normpath)::NamedTuple
+    function initconfig(; deployment_key = "DEPLOYMENT", configs_directory = joinpath(pwd(), "configs"))::NamedTuple
         global configs = Dict()
         configs_order = copy(configs_defaultorder)
         configs_directory = parseenvkey("CONFIGS_DIRECTORY", configs_directory)
@@ -44,7 +44,7 @@ module Configs
     function getconfig(path::String = "")
         global configs
         configs === nothing && initconfig()
-        configs isa Dict && (configs = immutable(configs))
+        configs isa Dict && (configs = makeimmutable(configs))
         path === "" && return configs
         subpaths = split(path, ".")
         ref = configs

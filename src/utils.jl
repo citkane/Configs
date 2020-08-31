@@ -25,20 +25,20 @@ end
 tosymbol(value) = value
 tosymbol(dict::Dict) = Dict(Symbol(key) => value for (key, value) in dict)
 
-immutable(value) = value
-function immutable(array::Array)
+makeimmutable(value) = value
+function makeimmutable(array::Array)
     shadow = []
     for value in array
-        push!(shadow, immutable(value))
+        push!(shadow, makeimmutable(value))
     end
     tuple(shadow...)
 end
 
-function immutable(dict::Dict)
+function makeimmutable(dict::Dict)
     shadow = Dict()
     dict = tosymbol(dict)
     for (key, value) in dict
-        shadow[key] = immutable(dict[key])      
+        shadow[key] = makeimmutable(dict[key])      
     end
     (; shadow...)
 end
@@ -65,7 +65,7 @@ function getfiles(path::String, retry::Bool = false)
         if retry
             throw(Configserror("no such config directory: " * path))
         else
-            getfiles(joinpath(pwd(), path) |> normpath, true)
+            getfiles(joinpath(pwd(), path), true)
         end
     end
 end
