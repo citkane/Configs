@@ -1,6 +1,6 @@
 using Configs
 using Test
-defaultpath = joinpath(pwd(), "configs") |> normpath
+defaultpath = "configs"
 defaultkey = "DEPLOYMENT"
 customdir = "customconfigs"
 customkey = "CUSTOM"
