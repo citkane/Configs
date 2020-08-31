@@ -1,4 +1,4 @@
-# Configs.jl
+# Configs.jl [![Build Status](https://travis-ci.org/citkane/Configs.svg?branch=master)](https://travis-ci.org/citkane/Configs) [![Coverage Status](https://coveralls.io/repos/github/citkane/Configs/badge.svg?branch=master)](https://coveralls.io/github/citkane/Configs?branch=master)
 
 ## Opinionated tool for managing deployment configurations
 

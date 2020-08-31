@@ -16,7 +16,6 @@ ENV["FOOTEST"] = "yep"
 Configs.deleteenvkey!("FOOTEST")
 
 @info "parsecustomenv!"
-
 foo = testobject("FOOTEST")
 @test_nowarn Configs.parsecustomenv!(foo)
 @test isequal(foo, Dict("tree" => Dict()))
@@ -26,7 +25,15 @@ ENV["FOOTEST"] = "yep"
 @test isequal(foo, testobject("yep"))
 Configs.deleteenvkey!("FOOTEST")
 
-@info "immutable"
+@info "tosymbol"
+testdict = @test_nowarn Configs.tosymbol(Dict("foo" => "FOO", "bar" => "BAR"))
+for key in keys(testdict)
+   @test key isa Symbol 
+end
+@test testdict[Symbol("foo")] === "FOO"
+@test Configs.tosymbol("foo") === "foo"
+
+@info "makeimmutable"
 isimmutable = @test_nowarn Configs.makeimmutable(testobject(["one", Dict("one" => 1)]))
 @test isequal(isimmutable, (tree = (val = ("one", (one = 1,)),),))
 

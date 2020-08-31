@@ -88,6 +88,5 @@ module Configs
                 return false
             end    
         end
-        true
     end
 end
