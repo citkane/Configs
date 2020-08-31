@@ -3,26 +3,17 @@ struct Configserror <:Exception
 end
 
 function deleteenvkey!(key::String)
-    try
+    if haskey(ENV, key)
         delete!(ENV, key)
-    catch err
     end
 end
 
 function parseenvkey(key::String, value)
-    try
-        return ENV[key]
-    catch err
-        return value
-    end
+    haskey(ENV, key) ? ENV[key] : value
 end
 
 function parsecustomenv!(tree::Dict, key::String, value)
-    try
-        tree[key] = ENV[value]
-    catch err
-        delete!(tree, key)
-    end
+    haskey(ENV, value) ? (tree[key] = ENV[value]) : delete!(tree, key)
 end
 
 function parsecustomenv!(tree::Dict)
