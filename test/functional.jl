@@ -20,7 +20,10 @@ defaultkey = "DEPLOYMENT"
     instance = initconfig()
     @test Configs.configs isa Dict
     @test isequal(instance.configs_order, ["default.json", "staging.json", "custom-environment-variables.json"])
-    @test_nowarn setconfig!("a.test.number", 100)
+    @test_nowarn setconfig!("a.test.int", 100)
+    @test_nowarn setconfig!("a.test.float", 100.00)
+    @test_nowarn setconfig!("a.test.true", true)
+    @test_nowarn setconfig!("a.test.false", false)
     @test_nowarn setconfig!("a.test.val", "test")
     @test_nowarn setconfig!("otherstuff.defaultmessage", "test")
     @test_nowarn setconfig!("otherstuff.empty", """{
