@@ -172,6 +172,35 @@ using Configs
 password = getconfig("database.credentials.password")
 # password === "mysupersecretpasword"
 ```
+## Advanced usaging
+setconfig! is flexible and takes many input parameter types:
+- Bool, Number, String
+- JSON String
+- Dict, Array
+- Tuple, NamedTuple (with any depth / combination of nesting)
+```julia
+using Configs
+# Thus
+setconfig!("project", """{
+    "credentials": {
+        "username": "user",
+        "password": "userpass"
+    },
+    "pages": [1, 2, 3]
+}""")
 
+# Is the same as
+setconfig!("project", (; credentials= (; username="user", password="userpass"), pages=(1,2,3))
+
+# Or
+
+setconfig!("project", Dict(
+    :credentials => Dict(
+        :username => "user",
+        :password => "userpass"
+    ),
+    :pages => [1, 2, 3]
+))
+```
 ## Footnote
 This is a deployment methodology cloned from the excellent node.js [config](https://www.npmjs.com/package/config) package.
