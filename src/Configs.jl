@@ -2,7 +2,7 @@ __precompile__()
 
 module Configs
     include("utils.jl")
-    using JSON
+    using JSON, Memoize
     export  getconfig,
             setconfig!,
             hasconfig,
@@ -13,13 +13,9 @@ module Configs
         "default.json",
         "custom-environment-variables.json"
     ]
-
-    function resetconfigs!()
-        global configs = nothing
-    end
-
+    
     function initconfig(;deployment_key = "DEPLOYMENT", configs_directory = "configs")::NamedTuple
-        global configs = Dict()
+        global configs = Dict{String, Any}()
         configs_order = copy(configs_defaultorder)
         configs_directory = parseenvkey("CONFIGS_DIRECTORY", configs_directory)
         deployment_key = parseenvkey("DEPLOYMENT_KEY", deployment_key)
@@ -41,37 +37,56 @@ module Configs
         (; configs_directory = configs_directory, deployment_key = deployment_key, configs_order = configs_order)
     end
 
-    function getconfig(path::String = "")
+    @memoize Dict{Tuple{String}, Any} function getconfig(path::String = "")
         global configs
         configs === nothing && initconfig()
         configs isa Dict && (configs = makeimmutable(configs))
         path === "" && return configs
-        subpaths = split(path, ".")
-        ref = configs
-        for subpath in subpaths
-            subpath = Symbol(subpath)
-            if ref isa NamedTuple && haskey(ref, subpath)
-                ref = ref[subpath]
-            else
-                throw(Configserror("no such config: " * path))
-            end
+        epath = Meta.parse("configs.$path")
+        try
+            eval(epath)
+        catch err
+            throw(Configserror("no such config: " * path))
         end
-        return ref
     end
 
-    function setconfig!(path::String, value)
-        path === "" && throw(Configserror("a path is required to set a config"))
+
+    function setconfig!(path::String, value::String)
+        try
+            value = JSON.parse(value) 
+        catch err
+        end
+        value = pathtodict(path, value)
+        setconfig!(value)
+    end
+    function setconfig!(path::String, value::Number)
+        value = pathtodict(path, value)
+        setconfig!(value)
+    end
+    function setconfig!(path::String, value::Tuple)
+        value = json(value) |> JSON.parse
+        value = pathtodict(path, value)
+        setconfig!(value)
+    end
+    function setconfig!(path::String, value::Array)
+        value = json(value) |> JSON.parse
+        value = pathtodict(path, value)
+        setconfig!(value)
+    end
+    function setconfig!(path::String, value::NamedTuple)
+        value = json(value) |> JSON.parse
+        value = pathtodict(path, value)
+        setconfig!(value)
+    end
+    function setconfig!(path::String, value::Dict)       
+        value = json(value) |> JSON.parse
+        value = pathtodict(path, value)
+        setconfig!(value)
+    end
+    function setconfig!(value::Dict)
         configs === nothing && initconfig()
         configs isa NamedTuple && throw(Configserror("""config is immutable. Please set all values before calling "get" """))
-        subpaths = split(path, ".")
-        ref = configs
-        for i in eachindex(subpaths)
-            subpath = Symbol(subpaths[i])
-            length(subpaths) === i && return (ref[subpath] = value)
-            haskey(ref, subpath) && !(ref[subpath] isa Dict) && (ref[subpath] = Dict())
-            !haskey(ref, subpath) && (ref[subpath] = Dict())
-            ref = ref[subpath]            
-        end
+        override!(configs, value)
     end
 
     function hasconfig(path::String)::Bool

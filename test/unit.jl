@@ -26,7 +26,7 @@ ENV["FOOTEST"] = "yep"
 Configs.deleteenvkey!("FOOTEST")
 
 @info "tosymbol"
-testdict = @test_nowarn Configs.tosymbol(Dict("foo" => "FOO", "bar" => "BAR"))
+testdict = @test_nowarn Configs.tosymbol(Dict{String, Any}("foo" => "FOO", "bar" => "BAR"))
 for key in keys(testdict)
    @test key isa Symbol 
 end

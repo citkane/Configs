@@ -8,3 +8,14 @@ os:
   - linux
   - osx
   - window
+
+# blocklist
+branches:
+  except:
+  - development
+
+# safelist
+branches:
+  only:
+  - master
+  - staging

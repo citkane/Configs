@@ -23,11 +23,11 @@ function parsecustomenv!(tree::Dict)
 end
 
 tosymbol(value) = value
-tosymbol(dict::Dict) = Dict(Symbol(key) => value for (key, value) in dict)
+tosymbol(dict::Dict) = Dict{Symbol, Any}(Symbol(key) => value for (key, value) in dict)
 
 makeimmutable(value) = value
 function makeimmutable(array::Array)
-    shadow = []
+    shadow = Array{Any, 1}()
     for value in array
         push!(shadow, makeimmutable(value))
     end
@@ -49,7 +49,7 @@ function override!(baseconf::Dict, newconf::Dict)
             if haskey(baseconf, key) && baseconf[key] isa Dict
                 override!(baseconf[key], newconf[key])
             else
-                baseconf[key] = Dict();
+                baseconf[key] = Dict{String, Any}();
                 override!(baseconf[key], newconf[key])
             end
         else
@@ -67,5 +67,22 @@ function getfiles(path::String, retry::Bool = false)
         else
             getfiles(joinpath(pwd(), path), true)
         end
+    end
+end
+
+function pathtodict(path::String, value)::Dict{String, Any}
+    path === "" && throw(Configserror("a path is required to set a config"))
+    subpaths = split(path, ".")
+    base = Dict{String, Any}()
+    ref = base
+    for i in eachindex(subpaths)
+        subpath = subpaths[i]
+        if length(subpaths) === i
+            ref[subpath] = value
+            return base
+        else
+            ref[subpath] = Dict{String, Any}()
+        end       
+        ref = ref[subpath]           
     end
 end
