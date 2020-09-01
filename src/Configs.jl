@@ -63,6 +63,10 @@ module Configs
         value = pathtodict(path, value)
         setconfig!(value)
     end
+    function setconfig!(path::String, value::Bool)
+        value = pathtodict(path, value)
+        setconfig!(value)
+    end
     function setconfig!(path::String, value::Tuple)
         value = json(value) |> JSON.parse
         value = pathtodict(path, value)

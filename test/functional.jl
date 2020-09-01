@@ -20,7 +20,7 @@ defaultkey = "DEPLOYMENT"
     instance = initconfig()
     @test Configs.configs isa Dict
     @test isequal(instance.configs_order, ["default.json", "staging.json", "custom-environment-variables.json"])
-    
+    @test_nowarn setconfig!("a.test.number", 100)
     @test_nowarn setconfig!("a.test.val", "test")
     @test_nowarn setconfig!("otherstuff.defaultmessage", "test")
     @test_nowarn setconfig!("otherstuff.empty", """{
@@ -32,13 +32,22 @@ defaultkey = "DEPLOYMENT"
     @test_nowarn setconfig!("otherstuff.tuples", (; foo = (1,2,3)))
     @test_nowarn setconfig!("otherstuff.tuples.bar", [1,2,3])
     @test_nowarn setconfig!("otherstuff.tuples.foobar", (1,2,3))
+    @test_nowarn setconfig!("otherstuff.dict", Dict(:foo => "bar"))
     @test getconfig("a.test.val") === "test"
     @test getconfig("database.credentials.password") === "supersecret"
     @test getconfig("otherstuff.defaultmessage") === "test"
     @test getconfig("otherstuff.empty.test.newpath") === "test"
+    @test getconfig("otherstuff.dict.foo") === "bar"
     @test isequal(getconfig("otherstuff.tuples.bar"), (1,2,3))
     @test isequal(getconfig("otherstuff.tuples.foo"), (1,2,3))
     @test isequal(getconfig("otherstuff.tuples.foobar"), (1,2,3))
+
+    @info "Errors if no key"
+    @test_throws Configs.Configserror getconfig("nogo.error")
+
+    @info "Checks for hasconfig"
+    @test !hasconfig("nogo.error")
+    @test hasconfig("a.test.val")
 end
 
 @testset "imutability" begin
