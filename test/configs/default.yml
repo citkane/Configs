@@ -1,0 +1,24 @@
+purpose: "testing"
+yamltime: 2020-09-03T14:18:45.633
+database:
+  connection:
+    url: "http://localhost"
+    port: 3600
+  credentials:
+    username: "guest"
+    password: "guestuserdefault"
+otherstuff:
+  defaultmessage: "Hello new user"
+  empty:
+empty:
+test:
+  array:
+    - "one"
+    - "two"
+    - "three"
+    - - "four"
+      - "five"
+      - "six"
+    - one: 1.00333
+      two: 2
+      three: 3

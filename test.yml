@@ -1,0 +1,9 @@
+---
+  thingone: "one"
+  list:
+    - one thing
+    - two
+    - three
+...
+---
+  newthing: "here we go"
