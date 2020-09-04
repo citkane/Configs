@@ -13,7 +13,7 @@ mutable struct Confstate
     immutable::NamedTuple
     configs::Dict{String, Any}
 end
-const state = Confstate(false, false, (;), Dict())
+const state = Confstate(false, false, NamedTuple(), Dict())
 
 """
     initconfig(; <keyword arguments>)
