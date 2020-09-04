@@ -38,10 +38,10 @@ add = Dict("foo" => ["one", "two"], "bar" => 2, "tree" => Dict("added" => 2))
 @test_nowarn Configs.override!(base, add)
 @test isequal(base, Dict{Any,Any}("bar" => 2,"tree" => Dict{Any,Any}("val" => "test","added" => 2),"foo" => ["one", "two"]))
 
-@info "getfiles"
-@test_throws Configs.Configserror Configs.getfiles("foobar")
-@test_nowarn Configs.getfiles("configs")
-@test_nowarn Configs.getfiles(joinpath(pwd(), "configs"))
+@info "getconffiles"
+@test_throws Configs.Configserror Configs.getconffiles("foobar")
+@test_nowarn Configs.getconffiles("configs")
+@test_nowarn Configs.getconffiles(joinpath(pwd(), "configs"))
 
 @info "readconffile"
 @test_nowarn Configs.readconffile(joinpath(pwd(), "configs"), "default.yml")
@@ -52,13 +52,12 @@ file = Configs.readconffile(joinpath(pwd(), "configs"), "default.yml")
 @info "parseconfigs"
 @test_nowarn Configs.parseconfigs("dev", "configs")
 @test_throws Configs.Configserror Configs.parseconfigs("dev", "badconfigs")
-ENV["DEPLOYMENT"] = "sTaGiNg"
 conf = Configs.parseconfigs("DEPLOYMENT", "configs")
-@test isequal(conf.order, ["default.yml", "staging.jl", "custom-environment-variables.json"])
+@test isequal(conf.files, ["default.yml", "staging.jl", "custom-environment-variables.json"])
 
 @info "pathtodict"
-@test_nowarn Configs.pathtodict("one,two.three", "test")
-dict = Configs.pathtodict("one.two.three", "test")
+@test_nowarn Configs.configpathtodict("one,two.three", "test")
+dict = Configs.configpathtodict("one.two.three", "test")
 @test dict isa Dict{String, Any}
 @test dict["one"]["two"]["three"] === "test"
 

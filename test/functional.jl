@@ -65,5 +65,5 @@ end
             parselib(value)
         end
     end
-    parselib(Configs.configs)
+    parselib(Configs.state.immutable)
 end
