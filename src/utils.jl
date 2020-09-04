@@ -119,3 +119,9 @@ function parseconfigpath(tree::NamedTuple, path::String)
     key = Symbol(popfirst!(paths))
     parseconfigpath(tree[key], join(paths, "."))
 end
+
+function makeconfig!(state::Confstate, value::Dict)
+    !state.init && initconfig()
+    state.isimmutable && throw(Configserror("""config is immutable. Please set all values before calling "get" """))
+    override!(state.configs, value)
+end
