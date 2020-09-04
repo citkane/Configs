@@ -25,14 +25,6 @@ ENV["FOOTEST"] = "yep"
 @test isequal(foo, testobject("yep"))
 Configs.deleteenvkey!("FOOTEST")
 
-@info "tosymbol"
-testdict = @test_nowarn Configs.tosymbol(Dict{String, Any}("foo" => "FOO", "bar" => "BAR"))
-for key in keys(testdict)
-   @test key isa Symbol 
-end
-@test testdict[Symbol("foo")] === "FOO"
-@test Configs.tosymbol("foo") === "foo"
-
 @info "makeimmutable"
 isimmutable = @test_nowarn Configs.makeimmutable(testobject(["one", Dict("one" => 1)]))
 @test isequal(isimmutable, (tree = (val = ("one", (one = 1,)),),))
@@ -46,8 +38,32 @@ add = Dict("foo" => ["one", "two"], "bar" => 2, "tree" => Dict("added" => 2))
 @test_nowarn Configs.override!(base, add)
 @test isequal(base, Dict{Any,Any}("bar" => 2,"tree" => Dict{Any,Any}("val" => "test","added" => 2),"foo" => ["one", "two"]))
 
-@info "getfiles"
-@test_throws Configs.Configserror Configs.getfiles("foobar")
-@test_nowarn Configs.getfiles("configs")
-@test_nowarn Configs.getfiles(joinpath(pwd(), "configs"))
+@info "getconffiles"
+@test_throws Configs.Configserror Configs.getconffiles("foobar")
+@test_nowarn Configs.getconffiles("configs")
+@test_nowarn Configs.getconffiles(joinpath(pwd(), "configs"))
+
+@info "readconffile"
+@test_nowarn Configs.readconffile(joinpath(pwd(), "configs"), "default.yml")
+file = Configs.readconffile(joinpath(pwd(), "configs"), "default.yml")
+@test file isa Dict
+@test file["database"]["connection"]["port"] === 3600
+
+@info "parseconfigs"
+@test_nowarn Configs.parseconfigs("dev", "configs")
+@test_throws Configs.Configserror Configs.parseconfigs("dev", "badconfigs")
+conf = Configs.parseconfigs("DEPLOYMENT", "configs")
+@test isequal(conf.files, ["default.yml", "staging.jl", "custom-environment-variables.json"])
+
+@info "pathtodict"
+@test_nowarn Configs.configpathtodict("one,two.three", "test")
+dict = Configs.configpathtodict("one.two.three", "test")
+@test dict isa Dict{String, Any}
+@test dict["one"]["two"]["three"] === "test"
+
+@info "parseconfigpath"
+testtuple = (; one=(; two = "test"))
+@test_nowarn Configs.parseconfigpath(testtuple, "one.two")
+@test_throws Configs.Configserror Configs.parseconfigpath(testtuple, "one.two.foo")
+@test Configs.parseconfigpath(testtuple, "one.two") === "test"
 

@@ -4,7 +4,7 @@
 
 Deployment configurations are loaded by cascading overrides.
 Overrides are inputed in order of:
-1. JSON files placed in a configurable folder location
+1. Configuration files placed in a configurable folder location
 2. ENV variable mapping
 3. Function calls
   
@@ -42,35 +42,38 @@ Conversely stated, you must complete all your ```setconfig!``` calls before acce
 ```bash
 $> cd my/project/rootdir
 $> julia --project=.
-julia> ]
-pkg> add Configs
+julia> ]add Configs
 ```
 ## Usage
-OPTIONAL: Create a ```configs``` directory in the project root
+Create a ```configs``` directory in the project root.
+
+The default configs folder is expected to be at `<project rootdir>/configs`.  
+Configs will throw an error if no folder is found at the default path or a custom path is not explicitly provided.
 ```bash
-#The default configs folder is expected to be at <my/project/rootdir>/configs.
-#Will throw an error if no valid configs folder is found or provided
 $> cd my/project/rootdir
 $> mkdir configs
 ```
-OPTIONAL custom init
+OR..
 ```bash
 $> cd my/project/rootdir
-
-$> DEPLOYMENT_KEY=MY_ENV CONFIGS_DIRECTORY=custom/configdirectory julia --project=. src/project.jl
+$> export DEPLOYMENT_KEY=MY_ENV
+$> export CONFIGS_DIRECTORY="/opt/configs/myproject"
+$> julia --project=. src/project.jl
 ```
-**```CONFIGS_DIRECTORY```** defines a custom path to the configs directory. This can be input as absolute or relative to the project root. The default is ```<project root>/configs```
-
-**```DEPLOYMENT_KEY```** defines which ```ENV``` key you intend to use to state the deployment environment [development, staging, production, etc...]. The default is ```ENV["DEPLOYMENT"]```.
-
 OR...
 ```julia
 using Configs
 
-initconfig(; deployment_key="MY_ENV", configs_directory="relative_or_absolute/custom/configdirectory") 
-# default deployment_key = "DEPLOYMENT"
-# default configs_directory = "<project rootdirectory>/configs"
+initconfig(; deployment_key="MY_ENV", configs_directory="customdir")
 ```
+WHERE:
+
+**`CONFIGS_DIRECTORY`** / **`configs_directory`**  
+defines a custom path to the configs directory. This can be input as absolute path or relative to the project root. The default is ```<project root>/configs```
+
+**`DEPLOYMENT_KEY`** / **`deployment_key`**    
+defines which ```ENV``` key you intend to use to state the deployment environment [development, staging, production, etc...]. The default is ```ENV["DEPLOYMENT"]```.
+
 Then manipulate and access your configs:
 ```julia
 using Configs
@@ -83,10 +86,11 @@ setconfig!("path.to.override", value)
 newvalue = getconfig("path.to.new")
 overriddenvalue = getconfig("path.to.override")
 
-port = getconfig("database.connection.port")
+connection = getconfig("database.connection")
+port = connection.port
 # OR
-database = getconfig("database")
-connection = database.connection
+conf = getconfig()
+connection = conf.database.connection
 port = connection.port
 url = connection.url
 
@@ -98,61 +102,66 @@ end
 setconfig!("database.connection.port", 8000) # Throws an error if called here
 ```
 
-## JSON file definitions:
+## File definitions:
+
+Configurations can be independantly defined in any of the following file formats:
+- JSON `.json`
+- YAML `.yml`
+- Julia `.jl`
 
 These provide cascading overrides in the order shown below: 
 
-### [1] ```configs/default.json```
+### [1] `configs/`**default**`.yml`
 Define public configs. This is suitable for eg. storing in a public code repository.
-```json
-{
-    "database": {
-        "connection": {
-            "url": "http://localhost",
-            "port": 3600
-        },
-        "credentials": {
-            "username": "guest",
-            "password": "guestuserdefault"
-        }
-    },
-    "otherstuff": {
-        "defaultmessage": "Hello new user"
-    }
-}
+```yaml
+timestamp: 2020-09-03T14:18:45.633
+database:
+    connection:
+        url: "http://localhost"
+        port: 3600
+    credentials:
+        username: "guest"
+        password: "guestuserdefault"
+otherstuff:
+    defaultmessage: "Hello new user"
 ```
-### [2] ```configs/<deployment>.json```
+Configs does not support multi-doc yaml files.
+### [2] `configs/`**\<deployment\>**`.jl`
 Typically, would be:
-- development.json
-- staging.json
-- production.json
-- testing.json
+- development.jl
+- staging.jl
+- production.jl
+- testing.jl
 
 Define semi private, deployment specific overrides. This would typically have a .gitignore exclusion, or be stored in a private repository only.
 
-
-```json
-{
-    "database": {
-        "connection": {
-            "url": "https://secureserver.me/staging",
-            "port": 3601
-        },
-        "credentials": {
-            "username": "stagingadmin",
-            "password": ""
-        }
-    }
-}
-```
-The file is named in lowercase to correspond with any ```ENV["DEPLOYMENT"]``` found at runtime. Thus, running:
+The file is named in lowercase to correspond with any `ENV["DEPLOYMENT"]` found at runtime. Thus, running:
 ```bash
-DEPLOYMENT=PrOdUcTiOn julia --project=. src/myproject.jl
+$> export DEPLOYMENT=PrOdUcTiOn
+$> julia --project=. src/myproject.jl
 ```
-would merge the configuration defined in ```production.json```
+would merge the configuration defined in `production.jl`
+```julia
+(
+    timestamp = now(),
+    database = (
+        connection = (
+            url = "https://secureserver.me/staging",
+            port = 3601,
+        ),
+        credentials = (
+            username = "stagingadmin",
+            pasword = "",
+        )
+    )
+)
+```
+For `.jl` configuration files, any valid Julia collections [ `Array`, `Tuple`, `NamedTuple`, `Dict` ] may be used in any combination.
 
-### [3] ```configs/custom-environment-variables.json```
-Define private overides. This maps ENV variables to configuration variables.
+Valid `Dates` methods may be used in the configuration file.
+
+### [3] `configs/`**custom-environment-variables**`.json`
+Define private overrides. This maps ENV variables to configuration variables.
 
 ```json
 {
@@ -165,7 +174,8 @@ Define private overides. This maps ENV variables to configuration variables.
 ```
 Private variables are thus passed in explicitly by, for example, defining the environment variable in BASH.
 ```bash
-DATABASE_PASSWORD=mysupersecretpasword julia --project=. src/myproject.jl
+$> export DATABASE_PASSWORD=mysupersecretpasword
+$> julia --project=. src/myproject.jl
 ```
 ```julia
 using Configs
@@ -173,13 +183,16 @@ password = getconfig("database.credentials.password")
 # password === "mysupersecretpasword"
 ```
 ## Advanced usaging
-setconfig! is flexible and takes many input parameter types:
+`setconfig!` has flexible input parameter types:
 - Bool, Number, String
 - JSON String
 - Dict, Array
-- Tuple, NamedTuple (with any depth / combination of nesting)
+- Tuple, NamedTuple  
+
+(with any depth / combination of nesting)
 ```julia
 using Configs
+
 # Thus
 setconfig!("project", """{
     "credentials": {
@@ -190,10 +203,15 @@ setconfig!("project", """{
 }""")
 
 # Is the same as
-setconfig!("project", (; credentials= (; username="user", password="userpass"), pages=(1,2,3))
+setconfig!("project", ( 
+    credentials= ( 
+        username="user",
+        password="userpass",
+    ), 
+    pages=(1,2,3)
+))
 
-# Or
-
+# Is the same as
 setconfig!("project", Dict(
     :credentials => Dict(
         :username => "user",
@@ -201,6 +219,11 @@ setconfig!("project", Dict(
     ),
     :pages => [1, 2, 3]
 ))
+
+# Is the same as
+setconfig!("project.credentials.username", "user")
+setconfig!("project.credentials.password", "userpass")
+setconfig!("project.pages", [1, 2, 3])
 ```
 ## Footnote
 This is a deployment methodology cloned from the excellent node.js [config](https://www.npmjs.com/package/config) package.

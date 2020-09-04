@@ -1,8 +1,3 @@
-customdir = "customconfigs"
-customkey = "CUSTOM"
-defaultpath = "configs"
-defaultkey = "DEPLOYMENT"
-
 @testset "Environment" begin
     
     @info "Set, get and delete ENV keys"
@@ -15,11 +10,9 @@ defaultkey = "DEPLOYMENT"
     @test Configs.parseenvkey("CONFIGS_FOO", false) === false
 
     @info "Initialises, sets and gets"
-    ENV["DEPLOYMENT"] = "sTaGiNg"
-    ENV["DATABASE_PASSWORD"] = "supersecret"
-    instance = initconfig()
-    @test Configs.configs isa Dict
-    @test isequal(instance.configs_order, ["default.json", "staging.json", "custom-environment-variables.json"])
+    
+    @test_nowarn initconfig()
+    @test_throws Configs.Configserror initconfig()
     @test_nowarn setconfig!("a.test.int", 100)
     @test_nowarn setconfig!("a.test.float", 100.00)
     @test_nowarn setconfig!("a.test.true", true)
@@ -68,5 +61,5 @@ end
             parselib(value)
         end
     end
-    parselib(Configs.configs)
+    parselib(Configs.state.immutable)
 end
