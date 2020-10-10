@@ -1,7 +1,7 @@
 name = "Configs"
 uuid = "d3268586-e29f-49f6-96a4-1d4e5b7023cc"
 authors = ["Michael Jonker <michael@openpoint.ie> and contributors"]
-version = "0.2.2"
+version = "0.2.3"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
