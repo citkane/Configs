@@ -14,6 +14,7 @@ mutable struct Confstate
     configs::Dict{String, Any}
 end
 const state = Confstate(false, false, NamedTuple(), Dict())
+const defaultpath = normpath(joinpath(dirname(Base.active_project()), "configs"))
 
 """
     initconfig(; <keyword arguments>)
@@ -33,7 +34,7 @@ May be relative to project root or absolute
 Default: `configs`
 
 """
-function initconfig(; deployment_key = "DEPLOYMENT", configs_directory = "configs", )
+function initconfig(; deployment_key = "DEPLOYMENT", configs_directory = defaultpath)
     state.init && throw(Configserror("configs has already been initialised"))
     state.init = true
     conf = parseconfigs(deployment_key, configs_directory)
