@@ -11,7 +11,7 @@
 
     @info "Initialises, sets and gets"
     
-    @test_nowarn initconfig()
+    @test_nowarn initconfig(; configs_directory = normpath(joinpath(pwd(), "configs")))
     @test_throws Configs.Configserror initconfig()
     @test_nowarn setconfig!("a.test.int", 100)
     @test_nowarn setconfig!("a.test.float", 100.00)
